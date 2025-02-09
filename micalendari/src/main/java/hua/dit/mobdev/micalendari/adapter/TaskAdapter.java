@@ -220,7 +220,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         if (!hasChanges) {
             for (int i = 0; i < tasks.size(); i++) {
                 if (!Objects.equals(tasks.get(i).getUid(), newTasks.get(i).getUid()) ||
-                        tasks.get(i).getStatus_id() != newTasks.get(i).getStatus_id()) {
+                        tasks.get(i).getStatus_id() != newTasks.get(i).getStatus_id() ||
+                        !Objects.equals(tasks.get(i).getShortName(), newTasks.get(i).getShortName()) ||
+                        !Objects.equals(tasks.get(i).getDescription(), newTasks.get(i).getDescription()) ||
+                        !Objects.equals(tasks.get(i).getStartTime(), newTasks.get(i).getStartTime()) ||
+                        !Objects.equals(tasks.get(i).getDate(), newTasks.get(i).getDate()) ||
+                        tasks.get(i).getDurationHours() != newTasks.get(i).getDurationHours() ||
+                        !Objects.equals(tasks.get(i).getLocation(), newTasks.get(i).getLocation())) {
                     hasChanges = true;
                     break;
                 }

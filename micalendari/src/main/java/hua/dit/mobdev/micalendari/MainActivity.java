@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
     @Override
     protected void onResume() {
         super.onResume();
+        currentTasks.clear();
         loadTasks();
         updateHandler.post(updateRunnable);
     }
@@ -148,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
     private void loadTasks() {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             List<Task> allTasks = db.taskDao().getAllUncompletedTasks();
+            Log.d("TaskLoad", "Loaded " + allTasks.size() + " tasks");
+            Log.d("TaskLoad", "Current tasks size: " + currentTasks.size());
             boolean needsUpdate = false;
 
             // Check for status changes
@@ -162,13 +165,19 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
 
             // Compare current and new tasks
             if (!needsUpdate && currentTasks.size() == allTasks.size()) {
+                Log.d("TaskLoad", "Comparing tasks for changes");
                 for (int i = 0; i < allTasks.size(); i++) {
                     if (!tasksAreEqual(currentTasks.get(i), allTasks.get(i))) {
+                        Log.d("TaskLoad", "Found difference in task comparison");
                         needsUpdate = true;
                         break;
                     }
                 }
             } else if (currentTasks.size() != allTasks.size()) {
+                needsUpdate = true;
+            }
+            else {
+                Log.d("TaskLoad", "Size mismatch or status change detected");
                 needsUpdate = true;
             }
 
@@ -182,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
 
     // Compare two tasks for equality
     private boolean tasksAreEqual(Task t1, Task t2) {
-        return t1.getUid() == t2.getUid() &&
+        boolean equal = t1.getUid() == t2.getUid() &&
                 t1.getStatus_id() == t2.getStatus_id() &&
                 Objects.equals(t1.getShortName(), t2.getShortName()) &&
                 Objects.equals(t1.getDescription(), t2.getDescription()) &&
@@ -190,6 +199,12 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
                 Objects.equals(t1.getDate(), t2.getDate()) &&
                 t1.getDurationHours() == t2.getDurationHours() &&
                 Objects.equals(t1.getLocation(), t2.getLocation());
+
+
+        Log.d("TaskCompare", String.format("Comparing tasks: %d == %d, names: %s == %s",
+                t1.getUid(), t2.getUid(), t1.getShortName(), t2.getShortName()));
+
+        return equal;
     }
 
     // Launch task edit activity with existing task data
@@ -204,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.TaskA
         intent.putExtra("task_duration", task.getDurationHours());
         intent.putExtra("task_location", task.getLocation());
         startActivity(intent);
+        onResume();
     }
 
     // Update task status based on current time and task schedule
